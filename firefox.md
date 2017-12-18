@@ -27,3 +27,6 @@
 
 ## Sync
  * only sync: bookmarks, add-ons and preferences
+
+## Bookmarks
+ * browser.tabs.loadBookmarksInTabs = true
