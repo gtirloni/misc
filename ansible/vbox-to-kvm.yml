@@ -1,0 +1,52 @@
+---
+- name: Disable VirtualBox and enable KVM/libvirt
+  hosts: localhost
+  become: yes
+
+  tasks:
+
+  - name: Disable VirtualBox services
+    service:
+      name: "{{ item }}"
+      enabled: no
+      state: stopped
+    with_items:
+      - vboxautostart-service
+      - vboxweb-service
+      - vboxballoonctrl-service
+      - vboxdrv
+
+  - name: Ensure Virtualization packages are installed
+    dnf:
+      name: '{{ item }}'
+      state: latest
+    with_items:
+      - guestfs-browser
+      - libguestfs-tools
+      - libvirt-client
+      - libvirt-daemon-config-network
+      - libvirt-daemon-kvm
+      - python-libguestfs
+      - qemu-kvm
+      - virt-install
+      - virt-manager
+      - virt-top
+      - virt-viewer
+
+  - name: Load KVM modules
+    modprobe:
+      name: "{{ item }}"
+      state: present
+    with_items:
+      - kvm_intel
+      - kvm
+
+  - name: Enable KVM-related services
+    service:
+      name: "{{ item }}"
+      enabled: yes
+      state: started
+    with_items:
+      - libvirtd
+      - virtlogd
+

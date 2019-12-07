@@ -1,0 +1,51 @@
+---
+- name: Disable KBM/libvirt and enable VirtualBox
+  hosts: localhost
+  become: yes
+  vars:
+    - vbox_repo_url: http://download.virtualbox.org/virtualbox/rpm/fedora/virtualbox.repo
+    - vbox_repo_file: /etc/yum.repos.d/virtualbox.repo
+    - vbox_package: VirtualBox-5.1
+
+  tasks:
+
+  - name: Disable KVM-related services
+    service:
+      name: "{{ item }}"
+      enabled: no
+      state: stopped
+    with_items:
+      - libvirtd
+      - virtlogd
+
+  - name: Unload KVM modules
+    modprobe:
+      name: "{{ item }}"
+      state: absent
+    with_items:
+      - kvm_intel
+      - kvm
+
+  - name: Enable VirtualBox repository
+    get_url:
+      url: '{{ vbox_repo_url }}'
+      dest: '{{ vbox_repo_file }}'
+      
+
+  - name: Ensure VirtualBox package is installed
+    dnf:
+      name: "{{ vbox_package }}"
+      state: latest
+
+  - name: Enable VirtualBox services
+    service:
+      name: "{{ item }}"
+      enabled: yes
+      state: started
+    with_items:
+      - vboxautostart-service
+      - vboxweb-service
+      - vboxballoonctrl-service
+      - vboxdrv
+
+
